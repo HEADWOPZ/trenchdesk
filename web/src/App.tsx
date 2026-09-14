@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, watchlistCsvUrl } from "./api";
 import { age, bandLabel, clock, shortMint, usd } from "./format";
 import type { ChatReply, DeskSnapshot, ScoredPair } from "./types";
@@ -19,6 +19,7 @@ export function App() {
   ]);
   const [draft, setDraft] = useState("why is this flagged?");
   const [busy, setBusy] = useState(false);
+  const chatEnd = useRef<HTMLDivElement | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -85,6 +86,10 @@ export function App() {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    chatEnd.current?.scrollIntoView({ block: "end" });
+  }, [chat, busy]);
 
   return (
     <div className="desk">
@@ -211,6 +216,7 @@ export function App() {
             lines={chat}
             draft={draft}
             busy={busy}
+            chatEnd={chatEnd}
             onDraft={setDraft}
             onSubmit={onChat}
           />
@@ -336,12 +342,14 @@ function ChatPanel({
   lines,
   draft,
   busy,
+  chatEnd,
   onDraft,
   onSubmit,
 }: {
   lines: ChatLine[];
   draft: string;
   busy: boolean;
+  chatEnd: RefObject<HTMLDivElement | null>;
   onDraft: (v: string) => void;
   onSubmit: (e: FormEvent) => void;
 }) {
@@ -358,6 +366,7 @@ function ChatPanel({
             {line.meta && <small>{line.meta}</small>}
           </div>
         ))}
+        <div ref={chatEnd} />
       </div>
       <form onSubmit={onSubmit}>
         <input

@@ -24,7 +24,7 @@ function feature(
   return {
     id,
     label,
-    points: available ? Math.round(points) : 0,
+    points: Math.round(points),
     maxPoints,
     evidence,
     available,

@@ -20,6 +20,7 @@ body,
 #root {
   margin: 0;
   height: 100%;
+  overflow: hidden;
   background: radial-gradient(1200px 600px at 10% -10%, #122016, transparent), var(--bg);
   color: var(--ink);
   font-family: "IBM Plex Sans", sans-serif;
@@ -32,9 +33,10 @@ body {
 }
 
 .desk {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
 .topbar,
@@ -126,13 +128,16 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .radar {
   padding: 16px 20px 8px;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(160px, 1fr) auto;
   gap: 12px;
 }
 
@@ -175,7 +180,7 @@ body {
   overflow: auto;
   border: 1px solid var(--line);
   background: rgba(13, 17, 20, 0.88);
-  min-height: 240px;
+  min-height: 0;
 }
 
 table {
@@ -290,6 +295,8 @@ tbody tr.sel {
   border: 1px solid var(--line);
   background: var(--panel);
   padding: 14px;
+  max-height: 38vh;
+  overflow: auto;
 }
 
 .why h2 {
@@ -363,6 +370,7 @@ tbody tr.sel {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -381,6 +389,8 @@ tbody tr.sel {
   list-style: none;
   margin: 10px 0 0;
   padding: 0;
+  max-height: 160px;
+  overflow: auto;
 }
 
 .watch li {
@@ -416,11 +426,12 @@ tbody tr.sel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 280px;
+  min-height: 0;
 }
 
 .log {
   flex: 1;
+  min-height: 0;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -487,8 +498,38 @@ tbody tr.sel {
 }
 
 @media (max-width: 980px) {
+  html,
+  body,
+  #root {
+    overflow: auto;
+    height: auto;
+  }
+
+  .desk {
+    height: auto;
+  }
+
   .grid,
   .features {
     grid-template-columns: 1fr;
+  }
+
+  .grid,
+  .radar,
+  .chat {
+    height: auto;
+  }
+
+  .table-wrap {
+    max-height: 50vh;
+  }
+
+  .why {
+    max-height: none;
+  }
+
+  .log {
+    min-height: 160px;
+    max-height: 240px;
   }
 }
