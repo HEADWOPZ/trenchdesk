@@ -86,4 +86,17 @@ describe("scorePair", () => {
     assert.equal(holders?.available, false);
     assert.match(holders?.evidence ?? "", /not provided/i);
   });
+
+  it("scores the offline mock fixture into the documented bands", () => {
+    const [rug, , desk, dust] = mockPairs();
+    const rugRisk = scorePair(rug);
+    const deskRisk = scorePair(desk);
+    const dustRisk = scorePair(dust);
+    assert.equal(rugRisk.band, "flagged");
+    assert.ok(rugRisk.score >= 70);
+    assert.equal(deskRisk.band, "clear");
+    assert.ok(deskRisk.score < 40);
+    assert.equal(dustRisk.band, "watch");
+    assert.ok(dustRisk.score >= 40 && dustRisk.score < 70);
+  });
 });

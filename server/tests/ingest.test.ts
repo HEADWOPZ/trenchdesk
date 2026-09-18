@@ -1,7 +1,13 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { deriveTags, mergePairs } from "../src/ingest/feeds.js";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { deriveTags, ingestMock, mergePairs } from "../src/ingest/feeds.js";
 import { mockPairs } from "../src/ingest/mock.js";
+import { config } from "../src/config.js";
+import { getPair, getScore, openDb } from "../src/db.js";
+import { runPoll } from "../src/ingest/poller.js";
 import { watchlistCsv } from "../src/routes.js";
 import { scorePair } from "../src/scoring.js";
 import type { NewPair, ScoredPair, WatchlistEntry } from "../src/types.js";
@@ -31,6 +37,50 @@ describe("normalize / merge", () => {
     assert.ok(tags.includes("new-pair"));
     assert.ok(tags.includes("low-liq"));
     assert.ok(tags.includes("honeypot-ish"));
+  });
+});
+
+describe("ingestMock", () => {
+  it("loads the offline fixture without calling live feeds", () => {
+    const { pairs, statuses } = ingestMock();
+    assert.equal(pairs.length, 4);
+    assert.ok(pairs.every((p) => p.sources.includes("mock")));
+    assert.ok(pairs.every((p) => p.tags.length > 0));
+    const mockStatus = statuses.find((s) => s.source === "mock");
+    assert.ok(mockStatus?.ok);
+    assert.equal(mockStatus?.count, 4);
+    const rug = pairs.find((p) => p.symbol === "RUGX");
+    assert.ok(rug?.tags.includes("honeypot-ish"));
+    assert.ok(rug?.tags.includes("low-liq"));
+  });
+});
+
+describe("runPoll mock ingest", () => {
+  it("persists fixture pairs and scores without live APIs or Telegram secrets", async () => {
+    const previousMode = config.feedMode;
+    config.feedMode = "mock";
+    const dir = mkdtempSync(join(tmpdir(), "trenchdesk-"));
+    openDb(join(dir, "test.sqlite"));
+    try {
+      const result = await runPoll();
+      assert.equal(result.mode, "mock");
+      assert.equal(result.fallback, false);
+      assert.equal(result.ingested, 4);
+      assert.equal(result.scored, 4);
+      assert.ok(result.events >= 4);
+      const rug = mockPairs()[0];
+      const stored = getPair(rug.mint);
+      assert.ok(stored);
+      assert.equal(stored.symbol, "RUGX");
+      const score = getScore(rug.mint);
+      assert.ok(score);
+      assert.equal(score.band, "flagged");
+      assert.ok(score.features.length === 6);
+      const mockStatus = result.feeds.find((f) => f.source === "mock");
+      assert.ok(mockStatus?.ok);
+    } finally {
+      config.feedMode = previousMode;
+    }
   });
 });
 

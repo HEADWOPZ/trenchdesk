@@ -87,8 +87,11 @@ npm start
 Offline / CI without egress:
 
 ```bash
+FEED_MODE=mock npm test
 FEED_MODE=mock npm run dev
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, `npm run typecheck`, and `npm test` on push and pull request to `main`, with `FEED_MODE=mock` so CI never needs live Solana feeds or Telegram secrets.
 
 Live mode is the default. If GeckoTerminal, Jupiter, and DexScreener all fail, the poller loads the mock fixture and the desk footer shows `MOCK / FALLBACK`.
 
@@ -99,7 +102,7 @@ Live mode is the default. If GeckoTerminal, Jupiter, and DexScreener all fail, t
 | `npm run dev` | API watch + Vite desk |
 | `npm run dev:api` / `dev:web` | Split processes |
 | `npm start` | API only (`tsx server/src/index.ts`) |
-| `npm test` | Scoring, Telegram dry-run, merge/CSV |
+| `npm test` | Scoring, mock ingest/poller, Telegram dry-run, merge/CSV |
 | `npm run typecheck` | `tsc --noEmit` for server + web |
 
 ## Environment
